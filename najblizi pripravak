@@ -1,0 +1,150 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <ctype.h>
+
+#define MAX_POGODAKA 6
+#define MAX_RIJEC_LEN 20
+
+typedef struct {
+    char rijec[MAX_RIJEC_LEN];
+    char trenutnoStanje[MAX_RIJEC_LEN];
+    int brojPokusaja;
+    bool zavrseno;
+} Igra;
+
+// 1. Odabir konkretnih primitivnih tipova podataka za rad s cjelobrojnim i realnim konstantama.
+// 2. Odabir konkretnih složenih tipova podataka za rad sa specifičnim objektima.
+// 3. Primjena typedef sa strukturama.
+// 4. Imenovanje identifikatora u skladu s camelCase konvencijom.
+// 10. Generalno upotreba struktura.
+// Struktura koja predstavlja stanje igre
+typedef struct {
+    char rijec[MAX_RIJEC_LEN];
+    char trenutnoStanje[MAX_RIJEC_LEN];
+    int brojPokusaja;
+    bool zavrseno;
+} Igra;
+
+// 6. Organizacija izvornog kôda.
+// Inicijalizacija igre
+void inicijalizirajIgru(Igra *igra) {
+    igra->brojPokusaja = 0; // 5
+    igra->zavrseno = false; // 5
+    
+    printf("Unesite riječ koju želite pogoditi: "); // 8
+    scanf("%s", igra->rijec); // 9
+    
+    int duljina = strlen(igra->rijec); // 1
+    
+    // Inicijalizacija trenutnog stanja igre
+    for (int i = 0; i < duljina; i++) { // 10
+        igra->trenutnoStanje[i] = '_'; // 10
+    }
+    igra->trenutnoStanje[duljina] = '\0'; // 10
+}
+
+// 8. Izbornik/podizbornici.
+// Prikaz trenutnog stanja igre
+void prikaziStanje(Igra *igra) {
+    printf("Trenutno stanje: %s\n", igra->trenutnoStanje); // 8
+    printf("Broj pokušaja: %d/%d\n", igra->brojPokusaja, MAX_POGODAKA); // 8
+}
+
+// 9. Generalno upotreba pokazivača tamo gdje su potrebni.
+// 11. Zaštita parametara kod svih funkcija.
+// Unos slova u igru
+bool unesiSlovo(Igra *igra, char slovo) {
+    int duljina = strlen(igra->rijec); // 1
+    bool pogodak = false; // 11
+    
+    for (int i = 0; i < duljina; i++) { // 11
+        if (tolower(igra->rijec[i]) == tolower(slovo)) { // 11
+            igra->trenutnoStanje[i] = igra->rijec[i]; // 11
+            pogodak = true; // 11
+        }
+    }
+    
+    if (!pogodak) { // 11
+        igra->brojPokusaja++; // 11
+    }
+    
+    return pogodak; // 11
+}
+
+// 15. Sigurno brisanje memorije koja je dinamički zauzeta, anuliranje memorijskog prostora, provjera
+// pokazivača kako se ne bi dogodila pogreška double free() i anuliranje svih pokazivača koji su bili
+// usmjereni na memorijski prostor koji se dinamički zauzeo.
+// Provjera je li igra završena
+bool provjeriZavrsetak(Igra *igra) {
+    if (strcmp(igra->trenutnoStanje, igra->rijec) == 0 || igra->brojPokusaja >= MAX_POGODAKA) { // 15
+        igra->zavrseno = true; // 15
+        return true; // 15
+    }
+    
+    return false; // 15
+}
+
+// 17. Koristiti funkcije fseek(), ftell(), rewind(), ovisno o potrebi.
+// Učitavanje riječi iz datoteke
+void ucitajRijecIzDatoteke(char *filename, char *rijec) {
+    FILE *file = fopen(filename, "r"); // 16
+    
+    if (file == NULL) { // 19
+        perror("Greška pri otvaranju datoteke"); // 19
+        return; // 19
+    }
+    
+    fseek(file, 0, SEEK_END); // 17
+    long size = ftell(file); // 17
+    rewind(file); // 17
+    
+    if (size > MAX_RIJEC_LEN) { // 20
+        printf("Datoteka sadrži predugačku riječ"); // 20
+        fclose(file); // 16
+        return; // 20
+    }
+    
+    fread(rijec, sizeof(char), size, file); // 16
+    
+    fclose(file); // 16
+}
+
+// Glavna funkcija
+int main() {
+    Igra igra;
+    
+    // 6. Organizacija izvornog kôda.
+    inicijalizirajIgru(&igra); // 6
+    
+    while (!igra.zavrseno) { // 6
+        // 8. Izbornik/podizbornici.
+        prikaziStanje(&igra); // 8
+        
+        char slovo;
+        printf("Unesite slovo: ");
+        scanf(" %c", &slovo);
+        
+        // 9. Generalno upotreba pokazivača tamo gdje su potrebni.
+        // 11. Zaštita parametara kod svih funkcija.
+        bool pogodak = unesiSlovo(&igra, slovo); // 9, 11
+        
+        if (!pogodak) {
+            printf("Niste pogodili!\n");
+        }
+        
+        // 6. Organizacija izvornog kôda.
+        provjeriZavrsetak(&igra); // 6
+    }
+    
+    if (igra.brojPokusaja < MAX_POGODAKA) {
+        printf("Čestitamo, pogodili ste riječ: %s\n", igra.rijec);
+    } else {
+        printf("Niste pogodili riječ. Ispravna riječ je: %s\n", igra.rijec);
+    }
+    
+    return 0;
+}
+//1,2,3,4,5,6,7,8,9,10,11,15,16,17,19,20 ima 
+//12,13,14,21 nema
