@@ -1,0 +1,3 @@
+John Doe,100
+Jane Smith,75
+Bob Johnson,50
